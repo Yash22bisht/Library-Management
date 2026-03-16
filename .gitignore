@@ -1,0 +1,41 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+
+
+# Environment variables
+.env
+
+
+# Logs
+*.log
+logs/
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+
+# Compiled files
+dist/
+build/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor settings
+.vscode/
+
+
+# Cache
+.cache/
+*.cache
+
+
+# package-lock.json
+
