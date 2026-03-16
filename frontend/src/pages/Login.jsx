@@ -102,7 +102,6 @@ export default function LibraryLogin() {
             </div>
           </div>
 
-          {/* Sign In Button */}
           <button
             onClick={handleSignIn}
             className="w-full py-3 bg-[#2a9d8f] hover:bg-[#228b7e] active:scale-95 text-white text-sm font-bold rounded-xl transition"
