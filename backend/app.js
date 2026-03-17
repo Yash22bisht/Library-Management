@@ -6,6 +6,7 @@ const cors = require("cors");
 const path = require("path");
 const loginRouter = require("./routes/loginRouter");
 const bookRouter = require("./routes/bookRouter");
+const bookIssueRouter = require("./routes/bookIssueRouter");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(cors());
 
 app.use("/api/login", loginRouter);
 app.use("/api/books", bookRouter);
+app.use("/api/issue", bookIssueRouter);
 
 
 
