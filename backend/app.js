@@ -7,13 +7,14 @@ const path = require("path");
 const loginRouter = require("./routes/loginRouter");
 const bookRouter = require("./routes/bookRouter");
 const bookIssueRouter = require("./routes/bookIssueRouter");
-
+const registerStudentRouter = require("./routes/registerStudentRouter");
 const app = express();
 
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
 
+app.use("/api/register",registerStudentRouter);
 app.use("/api/login", loginRouter);
 app.use("/api/books", bookRouter);
 app.use("/api/issue", bookIssueRouter);
