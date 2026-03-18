@@ -1,21 +1,22 @@
 const mysql2 = require('mysql2/promise');
 const dotenv = require('dotenv');
 const path = require('path');
-dotenv.config({
-    path: '../.env'
-});
+dotenv.config();
 
 const password = process.env.DB_PASSWORD;
 const connectionLimit = process.env.connectionLimit ;
 const host = process.env.host ;
 const user = process.env.user ;
+const port = parseInt(process.env.dbport) ;
 const database = process.env.database;
 // Load environment variables from .env file
 // Create a connection to the database
+// console.log('port', host)
 const pool = mysql2.createPool({
     connectionLimit: connectionLimit,
     host: host,
     user: user,
+    port: port,
     password: password,
     database: database
 });
