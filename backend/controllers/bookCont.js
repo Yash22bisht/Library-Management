@@ -1,4 +1,3 @@
-const { get } = require("mongoose");
 const pool = require("../db/db");
 
 const getBooks = async (req, res) => {
