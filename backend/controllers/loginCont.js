@@ -2,7 +2,8 @@ var pool = require("../db/db");
 const { setUser } = require("../utils/authUtil");
 
 const studentLogin = async (req, res) => {
-    
+  console.log("req.body", req.body);
+
   try {
     const { email, password } = req.body;
 
@@ -19,7 +20,6 @@ const studentLogin = async (req, res) => {
     );
 
     // console.log(studentDets[0]);
-    
 
     // If user doesn't exist, return error
     if (studentDets.length === 0) {
@@ -30,26 +30,23 @@ const studentLogin = async (req, res) => {
     const student = studentDets[0];
     const sessionID = setUser({ id: student.student_id, role: "student" });
 
-    // Clear prev cookies if exist 
+    // Clear prev cookies if exist
     res.clearCookie("sessionID");
 
-    // set new cookie 
+    // set new cookie
     res.cookie("sessionID", sessionID, { httpOnly: true });
 
-    // return 
+    // return
     return res.status(200).json({
-      message: "Login successful"
+      message: "Login successful",
     });
-
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
 const librarianLogin = async (req, res) => {
-    
   try {
     const { email, password } = req.body;
 
@@ -69,23 +66,25 @@ const librarianLogin = async (req, res) => {
     if (librarianDets.length === 0) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
-    
+
     // If user exists, create session and return success response
     const librarian = librarianDets[0];
     console.log(librarian);
-    const sessionID = setUser({ id: librarian.librarian_id, role: "librarian" });
-
-    // Clear prev cookies if exist 
-    res.clearCookie("sessionID");
-
-    // set new cookie 
-    res.cookie("sessionID", sessionID, { httpOnly: true });
-
-    // return 
-    return res.status(200).json({
-      message: "Login successful"
+    const sessionID = setUser({
+      id: librarian.librarian_id,
+      role: "librarian",
     });
 
+    // Clear prev cookies if exist
+    res.clearCookie("sessionID");
+
+    // set new cookie
+    res.cookie("sessionID", sessionID, { httpOnly: true });
+
+    // return
+    return res.status(200).json({
+      message: "Login successful",
+    });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -93,4 +92,3 @@ const librarianLogin = async (req, res) => {
 };
 
 module.exports = { studentLogin, librarianLogin };
-    

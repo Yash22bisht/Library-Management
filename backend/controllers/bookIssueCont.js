@@ -3,13 +3,26 @@ const pool = require("../db/db");
 const { getUser } = require("../utils/authUtil");
 
 const requestBook = async (req, res) => {
+  const student_id = req.user.id;
+  const role = req.user.role;
+  if (role !== "student") {
+    return res
+      .status(403)
+      .json({ message: "Forbidden: You do not have permission to perform this action" });
+  }
+  if (!student_id) {
+    return res
+      .status(400)
+      .json({ message: "Bad request: Student ID not found" });
+  }
   try {
-    const { book_id, student_id } = req.body;
+    console.log('req.body', req.body)
+    const { book_id} = req.body;
 
-    if (!book_id || !student_id) {
+    if (!book_id) {
       return res
         .status(400)
-        .json({ message: "Book ID and User ID are required" });
+        .json({ message: "Book ID are required" });
     }
 
     // Check if the book exists and has available copies
@@ -34,11 +47,9 @@ const requestBook = async (req, res) => {
     if (prevIssued.length > 0) {
       let status = prevIssued[0].status;
       if (status === "pending") {
-        return res
-          .status(400)
-          .json({
-            message: "You have already requested this book and it's pending",
-          });
+        return res.status(400).json({
+          message: "You have already requested this book and it's pending",
+        });
       } else if (status === "approved") {
         return res
           .status(400)
@@ -48,20 +59,14 @@ const requestBook = async (req, res) => {
 
     // Insert the book issue request into the database with "pending" status
     const [requestResult] = await pool.query(
-      "INSERT INTO book_issued (student_id,book_id, status) VALUES (?, ?, ?)",
-      [student_id, book_id, "pending"],
+      "INSERT INTO book_issued (student_id,book_id, status,request_date) VALUES (?, ?, ?, ?)",
+      [student_id, book_id, "pending", new Date()],
     );
 
-    // Decrease the available copies of the book by 1
-    // await pool.query("UPDATE books SET available_copies = available_copies - 1 WHERE book_id = ?", [book_id]);
-    // will do this only when the lirarian  approves the request
-
-    return res
-      .status(201)
-      .json({
-        message: "Book requested successfully",
-        requestId: requestResult.insertId,
-      });
+    return res.status(201).json({
+      message: "Book requested successfully",
+      requestId: requestResult.insertId,
+    });
   } catch (error) {
     console.error("Error requesting book:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -69,11 +74,9 @@ const requestBook = async (req, res) => {
 };
 
 const approveBookRequest = async (req, res) => {
-  const { issue_id, book_id } = req.body;
-  if (!issue_id || !book_id) {
-    return res
-      .status(400)
-      .json({ message: "Issue ID and Book ID are required" });
+  const { issue_id } = req.body;
+  if (!issue_id) {
+    return res.status(400).json({ message: "Issue ID is required" });
   }
 
   // get details of the librarian
@@ -86,16 +89,31 @@ const approveBookRequest = async (req, res) => {
   }
   const librarianDetails = getUser(sessionId);
   if (!librarianDetails || librarianDetails.role !== "librarian") {
-    return res
-      .status(403)
-      .json({
-        message: "Forbidden: You do not have permission to perform this action",
-      });
+    return res.status(403).json({
+      message: "Forbidden: You do not have permission to perform this action",
+    });
   }
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
+
+    // check issue and it's status
+    const [issueDetails] = await connection.query(
+      "Select status , book_id from book_issued where issue_id = ?",
+      [issue_id],
+    );
+    if (issueDetails.length === 0) {
+      return res.status(404).json({ message: "Issue request not found" });
+    } else if (issueDetails[0].status !== "PENDING") {
+      return res
+        .status(400)
+        .json({
+          message: `Cannot approve this request as its current status is ${issueDetails[0].status}`,
+        });
+    }
+
+    const book_id = issueDetails[0].book_id;
 
     // Check avialiblity of the book
     const [bookAvailability] = await connection.query(
@@ -147,11 +165,9 @@ const rejectBookRequest = async (req, res) => {
   }
   const librarianDetails = getUser(sessionId);
   if (!librarianDetails || librarianDetails.role !== "librarian") {
-    return res
-      .status(403)
-      .json({
-        message: "Forbidden: You do not have permission to perform this action",
-      });
+    return res.status(403).json({
+      message: "Forbidden: You do not have permission to perform this action",
+    });
   }
 
   try {
@@ -189,11 +205,9 @@ const returnBookRequest = async (req, res) => {
     // console.log(today, issueDetail[0].due_date);
 
     if (issueDetail[0].status === "RETURN_INITIATED") {
-      return res
-        .status(400)
-        .json({
-          message: "You have already initiated a return request for this book",
-        });
+      return res.status(400).json({
+        message: "You have already initiated a return request for this book",
+      });
     } else if (issueDetail[0].status !== "APPROVED") {
       return res
         .status(400)
@@ -221,16 +235,33 @@ const returnBookRequest = async (req, res) => {
 };
 
 const approveReturnRequest = async (req, res) => {
-  const { issue_id, book_id } = req.body;
-  if (!issue_id || !book_id) {
+  const { issue_id } = req.body;
+  if (!issue_id) {
     return res
       .status(400)
-      .json({ message: "Issue ID and Book ID are required" });
+      .json({ message: "Issue ID is required" });
   }
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
+
+    // check issue and it's status
+    const [issueDetails] = await connection.query(
+      "Select status from book_issued where issue_id = ?",
+      [issue_id],
+    );
+
+    if (issueDetails.length === 0) {
+      return res.status(404).json({ message: "Return request not found" });
+    } else if (issueDetails[0].status !== "RETURN_INITIATED") {
+      return res
+        .status(400).json({
+          message: `Cannot approve this return request as its current status is ${issueDetails[0].status}`,
+        });
+    }
+
+    const book_id = issueDetails[0].book_id;
 
     // Update the book issue request status to "returned"
     await connection.query(
