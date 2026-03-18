@@ -1,6 +1,6 @@
 import book from "../assets/icons/book.png";
 import bookmark from "../assets/icons/bookmark.png";
-import logout from "../assets/icons/logout.png";
+import logout from "../assets/icons/Logout.png";
 import inventory from "../assets/icons/inventory.png";
 import logs from "../assets/icons/logs.png";
 import add from "../assets/icons/add.png";
