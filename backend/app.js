@@ -32,7 +32,9 @@ app.use("/api/books/Librarian", authenticate, authorize(['librarian']), bookLibR
 app.use("/api/books/Approve", authenticate, authorize(['librarian']), bookApproveRouter);
 app.use("/api/issue", authenticate, bookIssueRouter);
 
-
-
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.get("/*splat", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
 
 module.exports = { app };
