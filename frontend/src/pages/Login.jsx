@@ -1,6 +1,8 @@
 import { useState } from "react";
 import open_eye from "../assets/icons/open_eye.png";
 import closed_eye from "../assets/icons/closed_eye.png";
+import { useNavigate ,Link } from "react-router-dom";
+import { authAPI } from "../service";
 
 function EyeIcon({ open }) {
   return open ? (
@@ -16,9 +18,33 @@ export default function LibraryLogin() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [role, setRole] = useState("student");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSignIn = () => {
-    alert(`Signing in as ${role === "student" ? "Student" : "Librarian"}\nEmail: ${email || "(empty)"}`);
+  const handleSignIn = async () => {
+    console.log('signing in ', { email, password, role });
+
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+    setError("");
+    setLoading(true);
+
+    try {
+      console.log("inisde try block")
+      const Login = role === "student" ? await authAPI.loginStudent(email, password) : await authAPI.loginLibrarian(email, password);
+
+      navigate(role === "student" ? "/student" : "/librarian");
+
+    } catch (error) {
+      console.error(error);
+      setError(error.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+
   };
 
   return (
@@ -41,6 +67,12 @@ export default function LibraryLogin() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8 w-[360px] flex flex-col gap-5">
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2.5 rounded-xl">
+              {error}
+            </div>
+          )}
 
           {/* Email */}
           <div className="flex flex-col gap-1.5">
@@ -108,6 +140,13 @@ export default function LibraryLogin() {
           >
             Sign In
           </button>
+
+          <p className="text-center text-sm text-[#6b7f88]">
+            New student?{" "}
+            <Link to="/register" className="text-[#2a9d8f] font-semibold hover:underline">
+              Create an account
+            </Link>
+          </p>
         </div>
       </div>
     </div>

@@ -3,14 +3,14 @@ import { useLibrary } from "../../context/LibraryContext";
 
 export default function AddBook({ onSuccess }) {
   const { addBook } = useLibrary();
-  const [form, setForm] = useState({ title: "", author: "", category: "" });
+  const [form, setForm] = useState({ title: "", author: "", category: "", total_copies: 1 });
 
   const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSubmit = () => {
     if (!form.title.trim() || !form.author.trim() || !form.category.trim()) return;
     addBook(form);
-    setForm({ title: "", author: "", category: "" });
+    setForm({ title: "", author: "", category: "", total_copies: 1 });
     if (onSuccess) onSuccess(); // switch back to Inventory tab after adding
   };
 
@@ -37,6 +37,19 @@ export default function AddBook({ onSuccess }) {
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-[#1a2e35]">Category</label>
           <input name="category" type="text" placeholder="e.g. Computer Science" value={form.category} onChange={handleChange} className={inputClass} />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-[#1a2e35]">Total Copies</label>
+          <input
+            name="total_copies"
+            type="number"
+            min="1"
+            placeholder="Number of copies available"
+            value={form.total_copies}
+            onChange={handleChange}
+            className={inputClass}
+          />
         </div>
 
         <button

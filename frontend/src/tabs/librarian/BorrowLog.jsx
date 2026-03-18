@@ -1,16 +1,20 @@
 import { useLibrary } from "../../context/LibraryContext";
 import StatusBadge from "../../components/StatusBadge";
 import EmptyState from "../../components/EmptyState";
+import ActionButton from "../../components/actionButton";
+// import {, approveReturnRequest, rejectRequest} from "../../context/LibraryContext";
 
-const ReturnIcon = () => (
-  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-    <polyline points="1 4 1 10 7 10" />
-    <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
-  </svg>
-);
 
 export default function BorrowLog() {
-  const { borrowLog, returnBook } = useLibrary();
+  const { borrowLog, borrowLogLoading,approveRequest, approveReturnRequest, rejectRequest } = useLibrary();
+
+  if (borrowLogLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-[#f0f4f5]">
+        <div className="text-[#6b7f88] text-sm animate-pulse">Loading borrow log...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 p-8 bg-[#f0f4f5] min-h-screen overflow-y-auto">
@@ -34,20 +38,22 @@ export default function BorrowLog() {
             <tbody>
               {borrowLog.map((log) => (
                 <tr key={log.id} className="border-b border-[#e8edf0] last:border-0 hover:bg-[#f7f9fa] transition">
-                  <td className="px-5 py-4 text-[#1a2e35] font-medium">{log.book}</td>
-                  <td className="px-5 py-4 text-[#6b7f88]">{log.student}</td>
-                  <td className="px-5 py-4 text-[#6b7f88]">{log.borrowDate}</td>
-                  <td className="px-5 py-4 text-[#6b7f88]">{log.dueDate}</td>
+                  <td className="px-5 py-4 text-[#1a2e35] font-medium">{log.title}</td>
+                  <td className="px-5 py-4 text-[#6b7f88]">{log.name}</td>
+                  <td className="px-5 py-4 text-[#6b7f88]">{log.issue_date?.split("T")[0] || "NA"}</td>
+                  <td className="px-5 py-4 text-[#6b7f88]">{log.due_date?.split("T")[0] || "NA"}</td>
                   <td className="px-5 py-4">
-                    <StatusBadge status="borrowed" />
+                    {/* {log.status.toLowerCase()} */}
+                    <StatusBadge status={log.status.toLowerCase()} />
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <button
-                      onClick={() => returnBook(log.id)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2a9d8f] hover:bg-[#228b7e] text-white text-xs font-semibold rounded-xl transition active:scale-95"
-                    >
-                      <ReturnIcon /> Return
-                    </button>
+                    <ActionButton
+                      status={log.status.toLowerCase()}
+                      logId={log.id}
+                      onApprove={() => approveRequest({ issue_id: log.issue_id})}
+                      onReject={() => rejectRequest({ issue_id: log.issue_id })}
+                      onApproveReturn={() => approveReturnRequest({ issue_id: log.issue_id })}
+                    />
                   </td>
                 </tr>
               ))}
